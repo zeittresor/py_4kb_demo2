@@ -2,7 +2,7 @@ import pygame as p,math as m,random as r,os,tempfile,wave,struct,time
 p.init();p.mixer.init(22050,-16,1,512);X=p.display.Info();W,H=X.current_w,X.current_h
 s=p.display.set_mode((W,H),p.FULLSCREEN);S,C,ta,I=m.sin,m.cos,m.tau,int;d=p.draw
 clk=p.time.Clock();gt=p.time.get_ticks;g=os.path.join(tempfile.gettempdir(),'d.wav')
-U,V=[p.Surface((W,H)).convert_alpha() for _ in'12'];f=p.font.SysFont('Arial',24)
+U,V=[p.Surface((W,H)).convert_alpha() for _ in'12'];f=p.font.SysFont('Arial',58)
 def mus():
  sr,du=22050,160;n=sr*du
  with wave.open(g,'wb')as w:
