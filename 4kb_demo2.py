@@ -1,57 +1,51 @@
-import pygame as p,math as m,random as r,os,tempfile,wave,struct
-p.init();p.mixer.init(22050,-16,1,512);i=p.display.Info();W,H=i.current_w,i.current_h;s=p.display.set_mode((W,H),p.FULLSCREEN)
-S,C,ta=m.sin,m.cos,m.tau;d=p.draw;I=int;clk=p.time.Clock();gt=p.time.get_ticks;U=p.Surface((W,H)).convert_alpha();V=p.Surface((W,H)).convert_alpha();g=tempfile.gettempdir()+os.sep+'d.wav'
+import pygame as p,math as m,random as r,os,tempfile,wave,struct,time
+p.init();p.mixer.init(22050,-16,1,512);X=p.display.Info();W,H=X.current_w,X.current_h
+s=p.display.set_mode((W,H),p.FULLSCREEN);S,C,ta,I=m.sin,m.cos,m.tau,int;d=p.draw
+clk=p.time.Clock();gt=p.time.get_ticks;g=os.path.join(tempfile.gettempdir(),'d.wav')
+U,V=[p.Surface((W,H)).convert_alpha() for _ in'12'];f=p.font.SysFont('Arial',24)
 def mus():
- sr=22050;dur=64;n=sr*dur;sc=[0,3,7,10,12,7,3,0]
+ sr,du=22050,160;n=sr*du
  with wave.open(g,'wb')as w:
   w.setparams((1,2,sr,n,'NONE',''))
   for i in range(n):
-   t=i/sr;b=t*2.5;o=[1,.5,2,1.5][I(t/8)%4];f=55*o*2**(sc[I(b)%8]/12);e=(1-b%1)**1.2;x=S(ta*f*t+S(ta*f*1.02*t))*.28*e
-   x+=.22*(b%4<.08)*e;x+=.04*r.random()*(t>8)*(1-(b*4%1))**8;x+=.08*S(ta*f*4*t)*(t>24)*e;x+=.1*r.random()*(t>32)*(abs(b%4-2)<.05)
+   if i%80000==0:
+    s.fill(0);s.blit(f.render(str(I(i/n*100)),1,(99,99,99)),(W//2,H//2));p.display.flip()
+   t=i/sr;b=t*2.4;bt=I(b);x=0;sq=[0,3,7,10];hz=27.5*(2**(sq[bt%4]/12))
+   x+=S(ta*hz*t+S(ta*hz*t)*.6)*(1-b%1)*.5
+   if bt>16:x+=S(ta*max(30,160*(1-(b%1)**.3))*t)*(1-(b%1)**.1)
+   if bt>32 and bt%2:x+=r.random()*(1-b%1)**16*.12
    w.writeframes(struct.pack('<h',I(max(-1,min(1,x))*32767)))
-try:mus();p.mixer.music.load(g);p.mixer.music.play(-1)
-except:pass
-def hc(h,q=0):
- h=(h+q*.11)%1;a=[abs(h*6-3)-1,2-abs(h*6-2),2-abs(h*6-4)]
- if q&1:a=a[2],a[0]*.7,a[1]
- if q&2:a=a[0]*.4,a[1],a[2]*.9
- return[max(0,min(255,I(x*255)))for x in a]
-def pl(T,t,q):
- cx=W*(.5+.35*S(q));cy=H*(.5+.35*C(q*2));z=6+(q&3)*2
- for y in range(0,H,z):
-  for x in range(0,W,z):
-   v=S(x*.012+t)+S((x*S(t/3)+y*C(t/4))*.01)+S(m.hypot(x-cx,y-cy)*.015-t)
-   d.rect(T,hc(v*.25+t*.08,q),(x,y,z,z))
-def sf(T,t,q):
- fx=W*(.5+.45*S(t*.4+q));fy=H*(.5+.45*C(t*.3+q));sp=.18+(q&3)*.06
- for i in range(170):
-  x=(S(i*12.989)*.5+.5)*W;y=(S(i*78.233)*.5+.5)*H;z=.08+(i*.017+t*sp)%1;X=I(fx+(x-fx)/z);Y=I(fy+(y-fy)/z)
-  if 0<X<W and 0<Y<H:d.circle(T,hc(z+t,q),(X,Y),1+(z<.2))
-def cu(T,t,q):
- P=[];A=t*(1+(q&3)*.12);B=t*.7;R=H*(.35+.07*S(q))
- for i in range(8):
-  x=((i&1)*2-1)*(1+.4*S(q));y=((i&2)-1)*(1+.3*C(q));z=((i&4)//2-1)
-  X=x*C(A)-z*S(A);z=x*S(A)+z*C(A);x=X;Y=y*C(B)-z*S(B);z=y*S(B)+z*C(B);P.append((I(W/2+x*R/(z+3)),I(H/2+Y*R/(z+3))))
- for i,j in((0,1),(1,3),(3,2),(2,0),(4,5),(5,7),(7,6),(6,4),(0,4),(1,5),(2,6),(3,7)):d.line(T,hc(t,q),P[i],P[j],1+(q&1))
-def kn(T,t,q):
- P=[];R=H*(.22+.06*(q&3));n=70+q%4*18
- for i in range(n):
-  a=i*ta/n;r1=R*(1+.35*S((3+q%3)*a+t));x=r1*C((2+q%2)*a+t);y=r1*S(3*a+t*.7);z=r1*S(2*a+t);P.append((I(W/2+x/(z/H+2)),I(H/2+y/(z/H+2))))
- d.lines(T,hc(t*.5,q),1,P,1+(q&1))
-def ob(T,t,q):
- for j in range(6+q%8):
-  a=t*(1+j*.02)+j;R=H*.18*(1+.4*S(t+j));d.circle(T,hc(t+j*.07,q),(I(W/2+S(a)*R*(2+S(j))),I(H/2+C(a*1.3)*R)),I(8+18*abs(S(t*2+j))),1+(j&1))
+mus();time.sleep(.5);p.mixer.music.load(g);p.mixer.music.play(-1)
+def hc(h,q):
+ a=[abs(((h+q*.1)%1)*6-3)-1,2-abs(((h+q*.1)%1)*6-2),2-abs(((h+q*.1)%1)*6-4)]
+ return tuple(max(0,min(255,I(x*255)))for x in a)
 def dr(k,T,t):
- q=k%12;T.fill(0)
- if q%3==0:pl(T,t,q)
- if q%3==1:sf(T,t,q)
- if q%4==0:cu(T,t,q)
- elif q%4==1:kn(T,t,q)
- else:ob(T,t,q)
-k,N,run,D,F,tm=0,12,1,6,1.4,0
-while run:
- for e in p.event.get():
-  if e.type==p.KEYDOWN and e.key==p.K_ESCAPE:run=0
- dt=clk.tick(60)/1000;tm+=dt;a=min(1,max(0,(tm-D+F)/F));t=gt()*1e-3
- dr(k,U,t);dr(k+1,V,t);U.set_alpha(I(255*(1-a)));V.set_alpha(I(255*a));s.blit(U,(0,0));s.blit(V,(0,0));p.display.flip()
- if tm>D:k+=1;tm=0
+ q,bt=k%7,(1-(t*2.4%1))**2;T.fill(0);cx,cy=W/2+S(t*.4)*W*.2,H/2+C(t*.3)*H*.2
+ if q==0:
+  for y in range(0,H,24):
+   for x in range(0,W,24):
+    v=S(x*.01+t)+S(y*.01*C(t*.5))+S(m.sqrt((x-cx)**2+(y-cy)**2)*.01);d.rect(T,hc(v*.2,k),(x,y,24,24))
+ elif q==1:
+  for i in range(200):z=(i*.005-t)%1+.01;r1=H/z*.45;a=i*137.5;d.circle(T,hc(z,k),(I(cx+C(a)*r1),I(cy+S(a)*r1)),max(1,I(2/z)))
+ elif q==2:
+  for j in range(1,15):
+   z=j-t%1;ay=cy+H/(z*.4);c=hc(j*.06,k);d.line(T,c,(0,I(ay)),(W,I(ay)),I(1+bt*3));xx=I(cx+S(t)*W/z);d.line(T,c,(xx,0),(xx,H),1)
+ elif q==3:
+  R=H*.15+bt*120
+  for i in range(5):
+   a=t+i*ta/5;pts=[(I(cx+S(a+j*ta/3)*R),I(cy+C(a+j*ta/3)*R))for j in range(3)];d.polygon(T,hc(i*.1,k),pts,2)
+ elif q==4:
+  n=4+I(bt*6);R=H*.2+bt*100;pts=[(I(cx+S(i*ta/n+t)*R*(1 if i%2 else .4)),I(cy+C(i*ta/n+t)*R*(1 if i%2 else .4)))for i in range(n*2)];d.polygon(T,hc(t,k),pts,0)
+ elif q==5:
+  for i in range(60):a=i*ta/60+t;r1=H*.3+bt*250;d.line(T,hc(i*.02,k),(I(cx),I(cy)),(I(cx+S(a)*r1),I(cy+C(a)*r1)),I(1+bt*6))
+ else:
+  for i in range(12):R=100+i*30+bt*100;d.circle(T,hc(t,i),(I(cx+S(t+i)*R),I(cy+C(t+i)*R)),I(20+bt*80),I(1+bt*10))
+ return bt
+k,tm=0,0
+while 1:
+ if any(e.type in(p.QUIT,p.KEYDOWN)for e in p.event.get()):p.quit();exit()
+ dt=clk.tick(60)/1000;tm+=dt;t=gt()*1e-3;a=min(1,max(0,(tm-10)/2));bt=dr(k,U,t);dr(k+1,V,t);U.set_alpha(I(255*(1-a)));V.set_alpha(I(255*a));s.fill(0);s.blit(U,(0,0));s.blit(V,(0,0))
+ if bt>.94:
+  z=1.07;tmp=p.transform.scale(s,(I(W*z),I(H*z)));s.blit(tmp,(-I(W*(z-1)/2),-I(H*(z-1)/2)),special_flags=p.BLEND_RGB_ADD)
+ p.display.flip()
+ if tm>12:k+=1;tm=0
