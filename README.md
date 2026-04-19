@@ -7,3 +7,4 @@ Simple 4KB demoscene experiment with iconic good music, animations, random 3D ef
 
 Note: Make sure NOT to press a mousebutton or a key while the (black screen) calculation procedure at start (might take 3-6 min)..
 
+btw. this was done 100 % by using vibecoding using qwen , gemini , gemma, grok , dolphin, gpt
